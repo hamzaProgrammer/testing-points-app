@@ -95,7 +95,7 @@ const verifyUserToken = (req, res, next) => {
                     }
                 } else if (decoded?.role == "admin") {
                     if (!adminsOnly?.includes(collectionName)) {
-                        if (req.route.path.split("/")[5] == "getUserProfileInfo" || req.route.path.split("/")[5] == "getUserInfoByAdmin" || req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities") {
+                        if (req.route.path.split("/")[5] == "getUserProfileInfo" || req.route.path.split("/")[5] == "getUserInfoByAdmin" || req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities" || req.route.path.split("/")[5] == "getDashboardInfo") {
 
                         } else {
                             return res.status(401).json({ success: false, message: 'Authorization Denied! You can not access this api' });
@@ -130,6 +130,8 @@ const verifyIpAddress = async (req, res, next) => {
     const clientId = req.ip; // Replace with your client identifier
     const currentTime = Date.now();
 
+    //console.log("==timeStamps====", timeStamps)
+
     let isFound = timeStamps.find(item => item?.ip == req.ip && item.reqUrl == req.originalUrl)
     if (isFound) {
         //console.log("===checking ===", (new Date().getTime() / 1000 - new Date(isFound.time).getTime() / 1000))
@@ -138,6 +140,7 @@ const verifyIpAddress = async (req, res, next) => {
         _temp.push({ ip: clientId, time: Date.now(), reqUrl: req.originalUrl })
         timeStamps = _temp
         const minTimeInterval = 2
+        console.log("==diff====",diff)
         if (diff < minTimeInterval) {
             console.log("***** Delaying api *****")
             setTimeout(() => { next() }, 2000)

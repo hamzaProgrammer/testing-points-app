@@ -1,6 +1,9 @@
 const Users = require('../models/UsersSchema')
 const UserActivities = require('../models/UserActivitySchema')
+const Activities = require('../models/ActivitySchema')
 const UserPoints = require('../models/PointsSchema')
+const Tokens = require('../models/TokensSchema')
+const Points = require('../models/PointsSchema')
 const Transactions = require('../models/TransactionsSchema')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
@@ -403,6 +406,73 @@ const getProfileInfoByAdmin = async (req, res) => {
     }
 }
 
+const getDashoardData = async (req, res) => {
+    if (!req.userId || !req.role) {
+        return res.json({
+            success: false,
+            message: "Please fill all required fields"
+        });
+    } else {
+        if (req.role == "user") {
+            return res.json({
+                message: 'Access Denied!',
+                success: false,
+            })
+        }
+        try {
+            const currentMonth = new Date().getMonth() + 1
+
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            const twelvveMonthsAgo = new Date();
+            twelvveMonthsAgo.setMonth(twelvveMonthsAgo.getMonth() - 12);
+
+            const totalActivities = await Activities.find({}).count()
+            
+            const totalTokens = await Tokens.find({}).count()
+
+            const totalUsers = await Users.find({}).count()
+
+            const totalUsersLastSevenDays = await Users.find({createdAt : {$gte: sevenDaysAgo }}).count()
+            
+            const totalUsersThisMonth = await Users.find({$and : [{createdAt : {$gte: new Date(new Date().getFullYear(), currentMonth - 1, 1)}} , {createdAt : {$lt: new Date(new Date().getFullYear(), currentMonth, 1)}}]}).count()
+
+            const totalUsersLast12Months = await Users.find({ createdAt: { $gte: twelvveMonthsAgo }}).count()
+
+            const totalPoints = await Points.find({}).count()
+
+            const totalPointsLastSevenDays = await Points.find({createdAt : {$gte: sevenDaysAgo }}).count()
+            
+            const totalPointsThisMonth = await Points.find({$and : [{createdAt : {$gte: new Date(new Date().getFullYear(), currentMonth - 1, 1)}} , {createdAt : {$lt: new Date(new Date().getFullYear(), currentMonth, 1)}}]}).count()
+
+            const totalPointsLast12Months = await Points.find({ createdAt: { $gte: twelvveMonthsAgo }}).count()
+
+            return res.status(201).json({
+                success: true,
+                message: 'Data fetched successfully',
+                totalActivities,
+                totalTokens,
+                totalUsers,
+                totalUsersLastSevenDays,
+                totalUsersThisMonth,
+                totalUsersLast12Months,
+                totalPoints,
+                totalPointsLastSevenDays,
+                totalPointsThisMonth,
+                totalPointsLast12Months
+            })
+        } catch (error) {
+            console.log("Error in getDahsboardData and error is : ", error)
+            res.status(201).json({
+                success: false,
+                message: "Something went wrong, Please try again"
+            })
+        }
+    }
+}
+
+
 module.exports = {
     LogInUser,
     LogInSuperAdmin,
@@ -410,5 +480,6 @@ module.exports = {
     sendMailForgetPassword,
     verifyOtp,
     getProfileInfo,
-    getProfileInfoByAdmin
+    getProfileInfoByAdmin,
+    getDashoardData
 }
