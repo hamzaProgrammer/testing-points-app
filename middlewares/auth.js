@@ -91,7 +91,11 @@ const verifyUserToken = (req, res, next) => {
 
                 if (decoded?.role == "superAdmin") {
                     if (!superAdminOnly?.includes(collectionName)) {
-                        return res.status(401).json({ success: false, message: 'Authorization Denied! You can not access this api' });
+                        if (req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities" || req.route.path.split("/")[5] == "getDashboardInfo") {
+
+                        } else {
+                            return res.status(401).json({ success: false, message: 'Authorization Denied! You can not access this api' });
+                        }
                     }
                 } else if (decoded?.role == "admin") {
                     if (!adminsOnly?.includes(collectionName)) {
@@ -140,7 +144,7 @@ const verifyIpAddress = async (req, res, next) => {
         _temp.push({ ip: clientId, time: Date.now(), reqUrl: req.originalUrl })
         timeStamps = _temp
         const minTimeInterval = 2
-        console.log("==diff====",diff)
+        console.log("==diff====", diff)
         if (diff < minTimeInterval) {
             console.log("***** Delaying api *****")
             setTimeout(() => { next() }, 2000)
