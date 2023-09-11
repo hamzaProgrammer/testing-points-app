@@ -5,6 +5,7 @@ const UserPoints = require('../models/PointsSchema')
 const Tokens = require('../models/TokensSchema')
 const Points = require('../models/PointsSchema')
 const Transactions = require('../models/TransactionsSchema')
+const Settings = require('../models/SettingsSchema')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const nodeMailer = require("nodemailer");
@@ -428,30 +429,112 @@ const getDashoardData = async (req, res) => {
             const twelvveMonthsAgo = new Date();
             twelvveMonthsAgo.setMonth(twelvveMonthsAgo.getMonth() - 12);
 
+            const settings = await Settings.find({})
+
             const totalActivities = await Activities.find({}).count()
-            
+
             const totalTokens = await Tokens.find({}).count()
 
             const totalUsers = await Users.find({}).count()
 
-            const totalUsersLastSevenDays = await Users.find({createdAt : {$gte: sevenDaysAgo }}).count()
-            
-            const totalUsersThisMonth = await Users.find({$and : [{createdAt : {$gte: new Date(new Date().getFullYear(), currentMonth - 1, 1)}} , {createdAt : {$lt: new Date(new Date().getFullYear(), currentMonth, 1)}}]}).count()
+            const totalUsersLastSevenDays = await Users.find({ createdAt: { $gte: sevenDaysAgo } }).count()
 
-            const totalUsersLast12Months = await Users.find({ createdAt: { $gte: twelvveMonthsAgo }}).count()
+            const totalUsersThisMonth = await Users.find({ $and: [{ createdAt: { $gte: new Date(new Date().getFullYear(), currentMonth - 1, 1) } }, { createdAt: { $lt: new Date(new Date().getFullYear(), currentMonth, 1) } }] }).count()
+
+            const totalUsersLast12Months = await Users.find({ createdAt: { $gte: twelvveMonthsAgo } }).count()
 
             const totalPoints = await Points.find({}).count()
 
-            const totalPointsLastSevenDays = await Points.find({createdAt : {$gte: sevenDaysAgo }}).count()
-            
-            const totalPointsThisMonth = await Points.find({$and : [{createdAt : {$gte: new Date(new Date().getFullYear(), currentMonth - 1, 1)}} , {createdAt : {$lt: new Date(new Date().getFullYear(), currentMonth, 1)}}]}).count()
+            const totalPointsLastSevenDays = await Points.find({ createdAt: { $gte: sevenDaysAgo } }).count()
 
-            const totalPointsLast12Months = await Points.find({ createdAt: { $gte: twelvveMonthsAgo }}).count()
+            const totalPointsThisMonth = await Points.find({ $and: [{ createdAt: { $gte: new Date(new Date().getFullYear(), currentMonth - 1, 1) } }, { createdAt: { $lt: new Date(new Date().getFullYear(), currentMonth, 1) } }] }).count()
+
+            const totalPointsLast12Months = await Points.find({ createdAt: { $gte: twelvveMonthsAgo } }).count()
+
+            const _activeActivities = await UserActivities.find({ endDateTime: null })
+
+            let activeActivities = [];
+            // Use the filter method to iterate through the array
+            const uniqueRecords = _activeActivities.filter((record) => {
+                const id = record.activity._id;
+
+                // If the id is not in the uniqueRecords object, add it and return true (keep the record)
+                let isFound = activeActivities.find(item => item.activity._id == id)
+                if (!isFound) {
+                    //activeActivities.push(record.activity);
+                    activeActivities.push({
+                        activity: {
+                            _id: record.activity._id,
+                            title: record.activity.name,
+                            description: record.activity.description,
+                            requireGPSTracking: record.activity.requireGPSTracking,
+                            defaultPoints: record.activity.defaultPoints,
+                            minPoints: record.activity.minPoints,
+                            maxPoints: record.activity.maxPoints,
+                            diffLevel: record.activity.diffLevel,
+                            image: record.activity.image,
+                        },
+                        users: [{
+                            _id: record.user._id,
+                            name: record.user.username,
+                            image: record.user.image
+                        }],
+                        Tokens: record.activity.maxPoints / settings[0].tokensPerTenPoint
+                    })
+                    return true;
+                } else {
+                    isFound.users.push({
+                        _id: record.user._id,
+                        name: record.user.username,
+                        image: record.user.image
+                    })
+                    activeActivities.map(item => item._id == id ? isFound : item)
+                }
+
+                // If the id is already in activeActivities, return false (remove the duplicate record)
+                return false;
+            })
+
+            const _closedActivitiesThisMonth = await UserActivities.find({ $and: [{ endDateTime: { $ne: null } }, { updatedAt: { $gte: new Date(new Date().getFullYear(), currentMonth - 1, 1) } }, { updatedAt: { $lt: new Date(new Date().getFullYear(), currentMonth, 1) } }] })
+
+            let closedActivitiesThisMonth = [];
+            // Use the filter method to iterate through the array
+            const uniqueClosedRecordsThisMonth = _closedActivitiesThisMonth.filter((record) => {
+                const id = record.activity._id;
+
+                // If the id is not in the uniqueClosedRecordsThisMonth object, add it and return true (keep the record)
+                if (!closedActivitiesThisMonth.find(item => item.activity._id == id)) {
+                    closedActivitiesThisMonth.push(record);
+                    return true;
+                }
+
+                // If the id is already in uniqueClosedRecordsThisMonth, return false (remove the duplicate record)
+                return false;
+            })
+
+            const _closedActivities = await UserActivities.find({ endDateTime: { $ne: null } })
+
+            let closedActivities = [];
+            // Use the filter method to iterate through the array
+            const uniqueClosedRecords = _closedActivities.filter((record) => {
+                const id = record.activity._id;
+
+                // If the id is not in the uniqueClosedRecords object, add it and return true (keep the record)
+                if (!closedActivities.find(item => item.activity._id == id)) {
+                    closedActivities.push(record);
+                    return true;
+                }
+
+                // If the id is already in closedActivities, return false (remove the duplicate record)
+                return false;
+            })
+
+            const allUserActivities = await UserActivities.find({})
+
 
             return res.status(201).json({
                 success: true,
                 message: 'Data fetched successfully',
-                totalActivities,
                 totalTokens,
                 totalUsers,
                 totalUsersLastSevenDays,
@@ -460,7 +543,13 @@ const getDashoardData = async (req, res) => {
                 totalPoints,
                 totalPointsLastSevenDays,
                 totalPointsThisMonth,
-                totalPointsLast12Months
+                totalPointsLast12Months,
+                totalActivities,
+                activeActivitiesCount: activeActivities.length,
+                closedActivitiesCount: closedActivities.length,
+                doneActivitiesThisMonth: closedActivitiesThisMonth.length,
+                activeActivities,
+                allUserActivities: allUserActivities.length
             })
         } catch (error) {
             console.log("Error in getDahsboardData and error is : ", error)

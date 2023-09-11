@@ -105,10 +105,10 @@ userSchema.set('toJSON', {
         //delete ret.isActive;
         delete ret.phone;
         //delete ret.isVerified;
-        delete ret.isGPSAllowed;
+        //delete ret.isGPSAllowed;
         //delete ret.isMetaMask;
-        delete ret.locationVerified;
-        delete ret.lastLogin;
+        //delete ret.locationVerified;
+        //delete ret.lastLogin;
         //delete ret.tokens;
         delete ret.role
         //delete ret.publishableKey

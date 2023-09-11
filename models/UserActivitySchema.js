@@ -15,9 +15,11 @@ const userActivitySchema = new mongoose.Schema(
         },
         startDateTime: {
             type: Date,
+            required : true
         },
         endDateTime: {
             type: Date,
+            default : null
         },
         startingCoordinates: {
             type: Array,
@@ -25,7 +27,6 @@ const userActivitySchema = new mongoose.Schema(
         },
         endingCoordinates: {
             type: Array,
-            required: true
         },
     },
     { versionKey: false, timestamps: true }

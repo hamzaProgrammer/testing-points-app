@@ -8,7 +8,7 @@ const { uploadFile } = require("../controllers/UploadControllers")
 // Set up multer storage
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, '/tmp/'); // Destination folder where files will be stored
+        callback(null, './tmp/'); // Destination folder where files will be stored
     },
     filename: (req, file, callback) => {
         // Generate a unique filename (you can use a UUID library for more uniqueness)
