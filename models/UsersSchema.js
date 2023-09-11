@@ -102,16 +102,16 @@ userSchema.plugin(autoPopulate);
 userSchema.set('toJSON', {
     transform: function (doc, ret) {
         delete ret.password;
-        delete ret.isActive;
+        //delete ret.isActive;
         delete ret.phone;
-        delete ret.isVerified;
+        //delete ret.isVerified;
         delete ret.isGPSAllowed;
-        delete ret.isMetaMask;
+        //delete ret.isMetaMask;
         delete ret.locationVerified;
         delete ret.lastLogin;
-        delete ret.tokens;
+        //delete ret.tokens;
         delete ret.role
-        delete ret.publishableKey
+        //delete ret.publishableKey
     },
 });
 
