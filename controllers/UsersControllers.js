@@ -394,8 +394,9 @@ const getProfileInfoByAdmin = async (req, res) => {
                     Tokens: isUserExists.tokens
                 },
                 Activities: isActivities,
-                Points: isPoints,
-                Transactions: isTransactions,
+                PointsEarned: isPoints,
+                TokensWithDrawn: isTransactions,
+                TotalTokens: isUserExists.tokens
             });
         } catch (error) {
             console.log("Error in getProfileInfoByAdmin and error is : ", error)
@@ -561,6 +562,215 @@ const getDashoardData = async (req, res) => {
     }
 }
 
+const getDashboardGraphData = async (req, res) => {
+    if (!req.userId || !req.role) {
+        return res.json({
+            success: false,
+            message: "Please fill all required fields"
+        });
+    } else {
+        if (req.role == "user") {
+            return res.json({
+                message: 'Access Denied!',
+                success: false,
+            })
+        }
+        try {
+            const currentDate = new Date();
+
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            const twelveMonthsAgo = new Date(currentDate);
+            twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+            const lastThirtyAgo = new Date();
+            lastThirtyAgo.setDate(lastThirtyAgo.getDate() - 7);
+
+            ///  ==== Users ====== ////
+            const monthlyRecord = await Users.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: twelveMonthsAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const weeklyRecord = await Users.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: sevenDaysAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const sixMonthsRecord = await Users.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: sixMonthsAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const lastThirtyDaysRecord = await Users.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: lastThirtyAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+
+            /// ==== Points ====== ////
+            const monthlyPointsRecord = await Points.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: twelveMonthsAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: '$pointTransferred' },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const weeklyPointsRecord = await Points.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: sevenDaysAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: '$pointTransferred' },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const sixMonthsPointsRecord = await Points.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: sixMonthsAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: '$pointTransferred' },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            const lastThirtyDaysPointsRecord = await Points.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: lastThirtyAgo, $lte: currentDate },
+                    },
+                },
+                {
+                    $group: {
+                        _id: {
+                            $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                        },
+                        count: { $sum: '$pointTransferred' },
+                    },
+                },
+                {
+                    $sort: { _id: 1 },
+                },
+            ]);
+
+            return res.status(201).json({
+                success: true,
+                message: 'Data fetched successfully',
+                Users: {
+                    last12monthsRecords: monthlyRecord,
+                    last6MonthsRecord: sixMonthsRecord,
+                    last30daysRecord: lastThirtyDaysRecord,
+                    last7DaysRecords: weeklyRecord,
+                },
+                Points: {
+                    last12monthsRecords: monthlyPointsRecord,
+                    last6MonthsRecord: weeklyPointsRecord,
+                    last30daysRecord: sixMonthsPointsRecord,
+                    last7DaysRecords: lastThirtyDaysPointsRecord,
+                }
+            })
+        } catch (error) {
+            console.log("Error in getDashboardGraphData and error is : ", error)
+            res.status(201).json({
+                success: false,
+                message: "Something went wrong, Please try again"
+            })
+        }
+    }
+}
+
 
 module.exports = {
     LogInUser,
@@ -570,5 +780,6 @@ module.exports = {
     verifyOtp,
     getProfileInfo,
     getProfileInfoByAdmin,
-    getDashoardData
+    getDashoardData,
+    getDashboardGraphData
 }

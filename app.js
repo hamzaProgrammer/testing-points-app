@@ -39,7 +39,6 @@ app.use(require('./routes/TransactionsRoutes'))
 
 // writing path for images getting
 app.use('/uploads', express.static('uploads'));
-app.use('/tmp', express.static('tmp'));
 
 // in case any unhandled exceptions occurs this will prevent server from crashing
 process.on('uncaughtException', function (err) {

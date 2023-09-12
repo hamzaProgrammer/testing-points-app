@@ -108,8 +108,19 @@ const addNewRecord = async (_collectionName, receivedData, adminId, role) => {
                     }
                     // sending notification in case of starting any activity
                     if (_collectionName == "UniversexWithdrawalRequests") {
-                        console.log("===sendting ===")
-                        await generateNewNotification(receivedData?.user, isAdded?._id, "You have sent withdrawl request to admin", "Widthdrwal")
+                        await generateNewNotification(null, isAdded._id, "New withdrwal request received", "", "Withdrwal", true)
+                    } else if (_collectionName == "UniversexUsers") {
+                        await generateNewNotification(null, isAdded._id, "New user has been registered", "", "Users", true)
+                    } else if (_collectionName == "UniversexVehicles") {
+                        await generateNewNotification(null, isAdded._id, "New Vehicle has been added", "", "Vehicle", true)
+                    } else if (_collectionName == "UniversexActivities") {
+                        await generateNewNotification(null, isAdded._id, "New User Activity has been added", "", "Activities", true)
+                    } else if (_collectionName == "UniversexSettings") {
+                        await generateNewNotification(null, isAdded._id, "New Setting has been added", "", "Settings", true)
+                    } else if (_collectionName == "UniversexUserActivities") {
+                        await generateNewNotification(null, isAdded._id, "New User activity has been started", "", "User Actvity", true)
+                    } else if (_collectionName == "UniversexPoints") {
+                        await generateNewNotification(null, isAdded._id, "New Points has been added", "", "Points", true)
                     }
                     return {
                         success: true,
@@ -194,7 +205,13 @@ const fetchAllRecords = async (_collectionName, skip, _conditions, userId = "", 
 
             let conditions = _conditions
             // checking if role is user in these collections then we will add condition so that only that user record is fetched
-            if (_collectionName == "UniversexWithdrawalRequests" || _collectionName == "UniversexNotifications" || _collectionName == "UniversexTransactions" || _collectionName == "UniversexUserActivities" || _collectionName == "UniversexUserLocations") {
+            if (_collectionName == "UniversexWithdrawalRequests" || _collectionName == "UniversexTransactions" || _collectionName == "UniversexUserActivities" || _collectionName == "UniversexUserLocations") {
+                if (role == "user") {
+                    conditions = { user: userId }
+                }
+            }
+
+            if (_collectionName == "UniversexNotifications") {
                 if (role == "user") {
                     conditions = { user: userId }
                 }
@@ -269,11 +286,18 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
                 return { success: false, message: "No Record found" }
             }
 
-            console.log("==updatedData?.withdrawlRequest==", updatedData?.withdrawlRequest)
-
             if (_collectionName == "UniversexSettings") {
                 if (role == "user") {
                     return { success: false, message: "Access Denied" }
+                }
+
+                if (updatedData.password != "" && updatedData?.email != "") {
+                    let isSuperAdmin = await Users.findOne({ $and: [{ email: updatedData?.email }, { role: "superAdmin" }] })
+                    isSuperAdmin.password = await bcrypt.hash(updatedData?.password, 12); // hashing password
+                    const isUserUpdated = await Users.findByIdAndUpdate(isSuperAdmin._id, { $set: { ...isSuperAdmin } }, { $new: true })
+                    if (!isUserUpdated) {
+                        return { success: false, message: "Please try again" }
+                    }
                 }
 
                 updatedData.lastUpdatedBy = userId
@@ -302,7 +326,6 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
                         }
                     } else {
                         let NoOfTokensGot = Number(isRecordExists?.activity?.maxPoints) / Number(settingsRes[0]?.tokensPerTenPoint)  // dividing toytal points got by an actvity with token per 10 points in settings
-                        console.log("==NoOfTokensGot ===", settingsRes[0]?.tokensPerTenPoint, ":::", isRecordExists?.activity?.maxPoints, "::::", NoOfTokensGot)
                         //  this means activity has been closed by user, so calculating user tokens, for now we are adding ten in previous tokens
                         let IsUserUpdated = await Users.findByIdAndUpdate(isRecordExists?.user, { $inc: { tokens: Number(NoOfTokensGot) } }, { $new: true })
                         if (!IsUserUpdated) {
@@ -315,7 +338,7 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
                 }
 
                 if (_collectionName == "UniversexUserActivities") {
-                    await generateNewNotification(isRecordExists?.user._id, isRecordExists?._id, "Your activity has been ended", "Activity")
+                    //await generateNewNotification(isRecordExists?.user._id, isRecordExists?._id, "Your activity has been ended", "Activity")
                 }
             }
             if (_collectionName == "UniversexNotifications") {
@@ -393,7 +416,7 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
 
                 // sending notification in case of starting any activity
                 if (_collectionName == "UniversexWithdrawalRequests") {
-                    await generateNewNotification(isRecordExists?.user._id, isRecordExists?._id, "Your withdrawl status has been changed", "Widthdrwal")
+                    //await generateNewNotification(isRecordExists?.user._id, isRecordExists?._id, "Your withdrawl status has been changed", "Widthdrwal")
                 }
             }
             if (_collectionName == "UniversexVehicles" || _collectionName == "UniversexActivities") {
@@ -426,6 +449,22 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
             let updated = await collectionName.findByIdAndUpdate(id, { $set: { ...updatedData } }, { $new: true })
 
             const _updated = await collectionName.findById(updated._id);
+
+            if (_collectionName == "UniversexWithdrawalRequests") {
+                await generateNewNotification(null, _updated._id, "withdrwal request status updated", "", "Withdrwal", true)
+            } else if (_collectionName == "UniversexUsers") {
+                await generateNewNotification(null, _updated._id, "user has been updated", "", "Users", true)
+            } else if (_collectionName == "UniversexVehicles") {
+                await generateNewNotification(null, _updated._id, "Vehicle has been updated", "", "Vehicle", true)
+            } else if (_collectionName == "UniversexActivities") {
+                await generateNewNotification(null, _updated._id, "User Activity has been updated", "", "Activities", true)
+            } else if (_collectionName == "UniversexSettings") {
+                await generateNewNotification(null, _updated._id, "Setting has been updated", "", "Settings", true)
+            } else if (_collectionName == "UniversexUserActivities") {
+                await generateNewNotification(null, _updated._id, "User activity has been upadted", "", "User Actvity", true)
+            } else if (_collectionName == "UniversexPoints") {
+                await generateNewNotification(null, _updated._id, "Points has been updated", "", "Points", true)
+            }
 
             if (_updated) {
                 return {
@@ -511,25 +550,40 @@ const deleteSingleRecord = async (_collectionName, id, userId = "", role) => { /
 }
 
 // generating new notification
-const generateNewNotification = async (user, id, description, type) => {
-    if (!user || !id || !description || !type) {
+const generateNewNotification = async (user, id, description, type, notificationType, isAddedByAdmin) => {
+    console.log("===itting ======")
+    if (!description) {
         return false
     }
 
-    let sendingData = {
-        user: user,
-        description: description,
+    let sendingData = {}
+    if (user) {
+        sendingData = {
+            user: user,
+            type: notificationType,
+            description: description,
+        }
+    } else {
+        sendingData = {
+            id: id,
+            type: notificationType,
+            description: description,
+        }
     }
-
-    if (type == "Activity") {
-        sendingData = { ...sendingData, activity: id }
-    } else if (type == "widthDrawl") {
-        sendingData = { ...sendingData, withdrawl: id }
+    if (!isAddedByAdmin) {
+        if (type == "Activity") {
+            sendingData = { ...sendingData, activity: id }
+        } else if (type == "widthDrawl") {
+            sendingData = { ...sendingData, withdrawl: id }
+        } else if (type == "transactions") {
+            sendingData = { ...sendingData, transaction: id }
+        }
     }
 
     const newNotification = new Notifications({ ...sendingData })
     try {
         let isCreated = await newNotification.save();
+        console.log("===is notifcation sent =====")
         if (isCreated) {
             return true
         }
