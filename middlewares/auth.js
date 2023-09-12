@@ -90,11 +90,13 @@ const verifyUserToken = (req, res, next) => {
                 }
 
                 if (decoded?.role == "superAdmin") {
-                    // if (req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities" || req.route.path.split("/")[5] == "getDashboardInfo") {
+                    if (!adminsOnly?.includes(collectionName)) {
+                        if (req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities" || req.route.path.split("/")[5] == "getDashboardInfo") {
 
-                    // } else {
-                    //     return res.status(401).json({ success: false, message: 'Authorization Denied! You can not access this api' });
-                    // }
+                        } else {
+                            return res.status(401).json({ success: false, message: 'Authorization Denied! You can not access this api' });
+                        }
+                    }
                 } else if (decoded?.role == "admin") {
                     if (!adminsOnly?.includes(collectionName)) {
                         if (req.route.path.split("/")[5] == "getUserProfileInfo" || req.route.path.split("/")[5] == "getUserInfoByAdmin" || req.route.path.split("/")[4] == "transactions" || req.route.path.split("/")[4] == "userActivities" || req.route.path.split("/")[5] == "getDashboardInfo") {
