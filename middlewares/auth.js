@@ -7,8 +7,8 @@ const requestTimestamps = new Map();
 let timeStamps = []
 
 
-const superAdminOnly = ["UniversexTokens", "UniversexUsers", "UniversexVehicles", "UniversexActivities", "UniversexUserActivities", "UniversexUserLocations", "UniversexWithdrawalRequests", "UniversexNotifications", "UniversexTransactions", "UniversexSettings", "UniversexPoints", "UniversexWithdrawalComments"]
-const adminsOnly = ["UniversexUsers", "UniversexVehicles", "UniversexWithdrawalRequests", "UniversexNotifications", "UniversexTransactions", "UniversexUserLocations", "UniversexActivities", "UniversexUserActivities", "UniversexSettings", "UniversexPoints", "UniversexWithdrawalComments"]
+const superAdminOnly = ["UniversexTokens", "UniversexUsers", "UniversexVehicles", "UniversexActivities", "UniversexUserActivities", "UniversexUserLocations", "UniversexWithdrawalRequests", "UniversexNotifications", "UniversexTransactions", "UniversexSettings", "UniversexPoints", "UniversexWithdrawalComments", "UniversexUsersNotes"]
+const adminsOnly = ["UniversexUsers", "UniversexVehicles", "UniversexWithdrawalRequests", "UniversexNotifications", "UniversexTransactions", "UniversexUserLocations", "UniversexActivities", "UniversexUserActivities", "UniversexSettings", "UniversexPoints", "UniversexWithdrawalComments", "UniversexUsersNotes"]
 const adminAndUsersBoth = ["UniversexActivities", "UniversexVehicles", "UniversexUserActivities", "UniversexUserLocations", "UniversexWithdrawalRequests", "UniversexNotifications", "UniversexTransactions", "UniversexPoints"]
 
 const allowedMethods = [

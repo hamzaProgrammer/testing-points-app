@@ -1,15 +1,17 @@
 const mongoose = require("mongoose");
 const autoPopulate = require('mongoose-autopopulate');
 
-const commentSchema = new mongoose.Schema({
-    withdrawlRequest: {
+const UserNoteSchema = new mongoose.Schema({
+    user: {
         type: mongoose.Schema.ObjectId,
-        ref: "UniversexWithdrawalRequests",
+        ref: "UniversexUsers",
         autopopulate: true,
+        required: true
     },
     addedBy: {
         type: mongoose.Schema.ObjectId,
         ref: "UniversexUsers",
+        required: true,
         autopopulate: true,
     },
     comment: {
@@ -19,14 +21,14 @@ const commentSchema = new mongoose.Schema({
 }, { versionKey: false, timestamps: true });
 
 
-commentSchema.plugin(autoPopulate);
+UserNoteSchema.plugin(autoPopulate);
 
-commentSchema.set('toJSON', {
+UserNoteSchema.set('toJSON', {
     transform: function (doc, ret) {
-        delete ret.withdrawlRequest;
+        delete ret.user;
     },
 });
 
-const UniversexWithdrawalComments = mongoose.model("UniversexWithdrawalComments", commentSchema);
+const UniversexUsersNotes = mongoose.model("UniversexUsersNotes", UserNoteSchema);
 
-module.exports = UniversexWithdrawalComments;
+module.exports = UniversexUsersNotes;

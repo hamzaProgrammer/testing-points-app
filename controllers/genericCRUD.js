@@ -96,6 +96,9 @@ const addNewRecord = async (_collectionName, receivedData, adminId, role) => {
             if (_collectionName == "UniversexWithdrawalComments") {
                 receivedData.addedBy = adminId
             }
+            if (_collectionName == "UniversexUsersNotes") {
+                receivedData.addedBy = adminId
+            }
 
             // creating new record
             const newRecord = new collectionName({ ...sendingData })
@@ -215,6 +218,12 @@ const fetchAllRecords = async (_collectionName, skip, _conditions, userId = "", 
                 if (role == "user") {
                     conditions = { user: userId }
                 }
+            }
+
+            if (_collectionName == "UniversexUsersNotes") {
+                // if (role == "user") {
+                //     conditions = { user: userId }
+                // }
             }
 
             if (_collectionName == "UniversexUsers") {
@@ -551,7 +560,6 @@ const deleteSingleRecord = async (_collectionName, id, userId = "", role) => { /
 
 // generating new notification
 const generateNewNotification = async (user, id, description, type, notificationType, isAddedByAdmin) => {
-    console.log("===itting ======")
     if (!description) {
         return false
     }
