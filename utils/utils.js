@@ -11,6 +11,7 @@ const Transactions = require('../models/TransactionsSchema')
 const Settings = require('../models/SettingsSchema')
 const Points = require('../models/PointsSchema')
 const WithDrawlComments = require('../models/WithdrawlCommentsSchama')
+const UserNotes = require('../models/UsersNotesSchema')
 
 // getting name of collection based on collection name sent in params, also verifying if valid collection name is sent
 const getCollectionName = (name) => {
@@ -38,6 +39,8 @@ const getCollectionName = (name) => {
         return Points
     } else if (name == "UniversexWithdrawalComments") {
         return WithDrawlComments
+    } else if (name == "UniversexUsersNotes") {
+        return UserNotes
     }
     // returning null if user has sent name of collection which does not exist in our db
     return null
@@ -299,6 +302,33 @@ const verifyRequiredFields = async (collectionName, data, userId, role) => {
             return {
                 success: false,
                 message: "Withdrawl Request Id does not exist"
+            }
+        }
+    } else if (collectionName == "UniversexUsersNotes") {
+        if (!data?.user || !data?.comment) {
+            return {
+                success: false,
+                message: "Please provide all required fields"
+            }
+        }
+        // verifying role
+        if (role == "user") {
+            return {
+                success: false,
+                message: "Access Denied!"
+            }
+        }
+        if (!isValidMongooseId(data?.user)) {
+            return {
+                success: false,
+                message: "Activity InValid Id provided"
+            }
+        }
+        let isUserExist = await Users.findById(data?.user)
+        if (!isUserExist) {
+            return {
+                success: false,
+                message: "User  does not exist"
             }
         }
     }
