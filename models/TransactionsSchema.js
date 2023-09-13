@@ -17,8 +17,8 @@ const TransactionSchema = new mongoose.Schema(
             type: Number,
         },
         type: {
-            // debit or credit
             type: String,
+            default : "Debit"
         },
         isWithdraw: {
             type: Boolean,

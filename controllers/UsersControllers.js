@@ -391,7 +391,8 @@ const getProfileInfoByAdmin = async (req, res) => {
                     Email: isUserExists.email,
                     UserName: isUserExists.username,
                     Role: isUserExists.role,
-                    Tokens: isUserExists.tokens
+                    Tokens: isUserExists.tokens,
+                    PhoneNo : isUserExists.phone
                 },
                 Activities: isActivities,
                 PointsEarned: isPoints,
@@ -541,6 +542,8 @@ const getDashoardData = async (req, res) => {
                 totalUsersLastSevenDays,
                 totalUsersThisMonth,
                 totalUsersLast12Months,
+                currentMonthUsersPercentage: totalUsers / totalUsersThisMonth,
+                userLastYearPercentage: totalUsers / totalUsersLast12Months,
                 totalPoints,
                 totalPointsLastSevenDays,
                 totalPointsThisMonth,
@@ -549,6 +552,7 @@ const getDashoardData = async (req, res) => {
                 activeActivitiesCount: activeActivities.length,
                 closedActivitiesCount: closedActivities.length,
                 doneActivitiesThisMonth: closedActivitiesThisMonth.length,
+                avtiveActivitiesPercentage: totalActivities / activeActivities.length,
                 activeActivities,
                 allUserActivities: allUserActivities.length
             })

@@ -8,6 +8,7 @@ const Transactions = require('../models/TransactionsSchema')
 const Settings = require('../models/SettingsSchema')
 const Points = require('../models/PointsSchema')
 const WidthdrwalRequests = require('../models/WidthdrawlRequestSchema')
+
 const { getCollectionName, verifyIfRecordExists, verifyRequiredFields } = require("../utils/utils")
 
 
@@ -111,23 +112,24 @@ const addNewRecord = async (_collectionName, receivedData, adminId, role) => {
                     }
                     // sending notification in case of starting any activity
                     if (_collectionName == "UniversexWithdrawalRequests") {
-                        await generateNewNotification(null, isAdded._id, "New withdrwal request received", "", "Withdrwal", true)
+                        await generateNewNotification(null, isAdded._id, "New withdrwal request received", "", "Withdrwal", true, _collectionName)
                     } else if (_collectionName == "UniversexUsers") {
-                        await generateNewNotification(null, isAdded._id, "New user has been registered", "", "Users", true)
+                        await generateNewNotification(null, isAdded._id, "New user has been registered", "", "Users", true, _collectionName)
                     } else if (_collectionName == "UniversexVehicles") {
-                        await generateNewNotification(null, isAdded._id, "New Vehicle has been added", "", "Vehicle", true)
+                        await generateNewNotification(null, isAdded._id, "New Vehicle has been added", "", "Vehicle", true, _collectionName)
                     } else if (_collectionName == "UniversexActivities") {
-                        await generateNewNotification(null, isAdded._id, "New User Activity has been added", "", "Activities", true)
+                        await generateNewNotification(null, isAdded._id, "New User Activity has been added", "", "Activities", true, _collectionName)
                     } else if (_collectionName == "UniversexSettings") {
-                        await generateNewNotification(null, isAdded._id, "New Setting has been added", "", "Settings", true)
+                        await generateNewNotification(null, isAdded._id, "New Setting has been added", "", "Settings", true, _collectionName)
                     } else if (_collectionName == "UniversexUserActivities") {
-                        await generateNewNotification(null, isAdded._id, "New User activity has been started", "", "User Actvity", true)
+                        await generateNewNotification(null, isAdded._id, "New User activity has been started", "", "User Actvity", true, _collectionName)
                     } else if (_collectionName == "UniversexPoints") {
-                        await generateNewNotification(null, isAdded._id, "New Points has been added", "", "Points", true)
+                        await generateNewNotification(null, isAdded._id, "New Points has been added", "", "Points", true, _collectionName)
                     }
                     return {
                         success: true,
-                        message: 'New record added successfully'
+                        message: 'New record added successfully',
+                        NewRecordId: isAdded._id
                     }
                 }
             } catch (error) {
@@ -220,12 +222,6 @@ const fetchAllRecords = async (_collectionName, skip, _conditions, userId = "", 
                 }
             }
 
-            if (_collectionName == "UniversexUsersNotes") {
-                // if (role == "user") {
-                //     conditions = { user: userId }
-                // }
-            }
-
             if (_collectionName == "UniversexUsers") {
                 if (role == "user") {
                     return {
@@ -259,6 +255,16 @@ const fetchAllRecords = async (_collectionName, skip, _conditions, userId = "", 
 
             if (!isRecordExists) {
                 return { success: false, message: "No Record found" }
+            }
+
+            if (_collectionName == "UniversexNotifications") {
+                let unReadNotifications = await Notifications.find({ readBy: { $nin: userId } }).count()
+
+                return {
+                    success: true,
+                    Record: isRecordExists,
+                    unReadCount: unReadNotifications
+                }
             }
 
             return {
@@ -460,19 +466,19 @@ const updateSingleRecord = async (_collectionName, id, updatedData, userId = "",
             const _updated = await collectionName.findById(updated._id);
 
             if (_collectionName == "UniversexWithdrawalRequests") {
-                await generateNewNotification(null, _updated._id, "withdrwal request status updated", "", "Withdrwal", true)
+                await generateNewNotification(null, _updated._id, "withdrwal request status updated", "", "Withdrwal", true, _collectionName)
             } else if (_collectionName == "UniversexUsers") {
-                await generateNewNotification(null, _updated._id, "user has been updated", "", "Users", true)
+                await generateNewNotification(null, _updated._id, "user has been updated", "", "Users", true, _collectionName)
             } else if (_collectionName == "UniversexVehicles") {
-                await generateNewNotification(null, _updated._id, "Vehicle has been updated", "", "Vehicle", true)
+                await generateNewNotification(null, _updated._id, "Vehicle has been updated", "", "Vehicle", true, _collectionName)
             } else if (_collectionName == "UniversexActivities") {
-                await generateNewNotification(null, _updated._id, "User Activity has been updated", "", "Activities", true)
+                await generateNewNotification(null, _updated._id, "User Activity has been updated", "", "Activities", true, _collectionName)
             } else if (_collectionName == "UniversexSettings") {
-                await generateNewNotification(null, _updated._id, "Setting has been updated", "", "Settings", true)
+                await generateNewNotification(null, _updated._id, "Setting has been updated", "", "Settings", true, _collectionName)
             } else if (_collectionName == "UniversexUserActivities") {
-                await generateNewNotification(null, _updated._id, "User activity has been upadted", "", "User Actvity", true)
+                await generateNewNotification(null, _updated._id, "User activity has been upadted", "", "User Actvity", true, _collectionName)
             } else if (_collectionName == "UniversexPoints") {
-                await generateNewNotification(null, _updated._id, "Points has been updated", "", "Points", true)
+                await generateNewNotification(null, _updated._id, "Points has been updated", "", "Points", true, _collectionName)
             }
 
             if (_updated) {
@@ -559,20 +565,38 @@ const deleteSingleRecord = async (_collectionName, id, userId = "", role) => { /
 }
 
 // generating new notification
-const generateNewNotification = async (user, id, description, type, notificationType, isAddedByAdmin) => {
+const generateNewNotification = async (user, id, description, type, notificationType, isAddedByAdmin,_collectionName) => {
     if (!description) {
         return false
     }
 
-    let sendingData = {}
+    let _sendingData = {}
+    if (_collectionName == "UniversexWithdrawalRequests") {
+        _sendingData = {withdrawId : id}
+    } else if (_collectionName == "UniversexUsers") {
+        _sendingData = {userId : id}
+    } else if (_collectionName == "UniversexVehicles") {
+        _sendingData = {vehicleId : id}
+    } else if (_collectionName == "UniversexActivities") {
+        _sendingData = {activityId : id}
+    } else if (_collectionName == "UniversexSettings") {
+        _sendingData = { settingId : id}
+    } else if (_collectionName == "UniversexUserActivities") {
+        _sendingData = {userActivityId : id}
+    } else if (_collectionName == "UniversexPoints") {
+        _sendingData = {pointId : id}
+    }
+
     if (user) {
         sendingData = {
+            ..._sendingData,
             user: user,
             type: notificationType,
             description: description,
         }
     } else {
         sendingData = {
+            ..._sendingData,
             id: id,
             type: notificationType,
             description: description,
