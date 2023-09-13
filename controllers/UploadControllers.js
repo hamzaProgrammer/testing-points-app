@@ -8,6 +8,8 @@ const uploadFile = async (req, res) => {
         return res.json({ success: false, message: "Please fill required fields" })
     } else {
         try {
+            console.log("===req.file.path =====", req.file.path)
+
             let collectionName = getCollectionName(req.params.collectionName)
             if (!collectionName) {
                 return res.json({ success: false, message: "Collection not found" })
@@ -18,7 +20,8 @@ const uploadFile = async (req, res) => {
                 return res.json({ success: false, message: "Record not found" })
             }
             console.log("== fileName", req.file.path)
-            isFound.image = path.basename(req.file.path)
+            // isFound.image = path.basename(req.file.path)
+            isFound.image = req.file.path
 
             if (req.params.collectionName == "UniversexVehicles" || req.params.collectionName == "UniversexActivities") {
                 if (req.role == "user") {
