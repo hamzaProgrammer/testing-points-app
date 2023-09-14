@@ -32,7 +32,7 @@ router.get('/api/v1/:token/users/getUserProfileInfo', verifyAccessToken, verifyU
 router.get('/api/v1/:token/users/getUserInfoByAdmin/:userId', verifyAccessToken, verifyUserToken, verifyIpAddress, getProfileInfoByAdmin)
 
 // Sign in super admin
-router.post('/api/v1/users/superadmin/signin', verifyIpAddress, verifyUserToken, LogInSuperAdmin)
+router.post('/api/v1/users/superadmin/signin', verifyIpAddress, LogInSuperAdmin)
 
 // get dashboard data
 router.get('/api/v1/:token/users/getDashboardInfo', verifyAccessToken, verifyUserToken, verifyIpAddress, getDashoardData)
