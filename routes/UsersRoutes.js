@@ -38,7 +38,7 @@ router.post('/api/v1/users/superadmin/signin', verifyIpAddress, verifyUserToken,
 router.get('/api/v1/:token/users/getDashboardInfo', verifyAccessToken, verifyUserToken, verifyIpAddress, getDashoardData)
 
 // get dashboard data
-router.get('/api/v1/:token/users/getDashboardGraphData', verifyAccessToken, verifyIpAddress, getDashboardGraphData)
+router.get('/api/v1/:token/users/getDashboardGraphData', verifyIpAddress, getDashboardGraphData)
 
 
 module.exports = router;
