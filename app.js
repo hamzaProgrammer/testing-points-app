@@ -35,6 +35,7 @@ app.use(require('./routes/UsersRoutes'))
 app.use(require('./routes/UploadRoutes'))
 app.use(require('./routes/UserActivitiesRoutes'))
 app.use(require('./routes/TransactionsRoutes'))
+app.use(require('./routes/NotificationRoutes'))
 
 
 // writing path for images getting
