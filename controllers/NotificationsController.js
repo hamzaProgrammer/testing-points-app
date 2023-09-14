@@ -2,7 +2,7 @@ const Notifications = require('../models/NotificationsSchema')
 
 // add new read by of any notification
 const updateReadByOfAnyNotification = async (req, res) => {
-    if (!req.body.notificationsIds || !req.userId) {
+    if (!req.userId) {
         return res.json({ success: false, message: "Please fill required fields" })
     } else {
         try {
@@ -10,17 +10,14 @@ const updateReadByOfAnyNotification = async (req, res) => {
                 return res.json({ success: false, message: "Access Denied!" })
             }
 
-            //let isUpdated = await Notifications.updateMany( req.body.notificationsIds, {});
-
-            // Update notifications in the database
             const result = await Notifications.updateMany(
-                { _id: { $in: req.body.notificationsIds } },
+                { readBy: { $nin: [req.userId] } },
                 { $addToSet: { readBy: req.userId } }
             );
 
             return res.json({
                 success: true,
-                message: "Action successfull",
+                message: "Action successful",
             });
         } catch (error) {
             console.log("Error in updateReadByOfAnyNotification and error is : ", error)

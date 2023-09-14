@@ -392,12 +392,12 @@ const getProfileInfoByAdmin = async (req, res) => {
                     UserName: isUserExists.username,
                     Role: isUserExists.role,
                     Tokens: isUserExists.tokens,
-                    PhoneNo : isUserExists.phone
+                    PhoneNo: isUserExists.phone
                 },
                 Activities: isActivities,
-                PointsEarned: isPoints,
+                TotalPoints: isPoints,
                 TokensWithDrawn: isTransactions,
-                TotalTokens: isUserExists.tokens
+                TotalTokens: isUserExists.tokens,
             });
         } catch (error) {
             console.log("Error in getProfileInfoByAdmin and error is : ", error)
@@ -409,6 +409,7 @@ const getProfileInfoByAdmin = async (req, res) => {
     }
 }
 
+// getting dashboard data
 const getDashoardData = async (req, res) => {
     if (!req.userId || !req.role) {
         return res.json({
@@ -566,6 +567,7 @@ const getDashoardData = async (req, res) => {
     }
 }
 
+// getting dashboard graph data
 const getDashboardGraphData = async (req, res) => {
     if (!req.userId || !req.role) {
         return res.json({
