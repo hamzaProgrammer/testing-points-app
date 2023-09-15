@@ -386,14 +386,7 @@ const getProfileInfoByAdmin = async (req, res) => {
 
             return res.json({
                 success: true,
-                User: {
-                    Id: isUserExists._id,
-                    Email: isUserExists.email,
-                    UserName: isUserExists.username,
-                    Role: isUserExists.role,
-                    Tokens: isUserExists.tokens,
-                    PhoneNo: isUserExists.phone
-                },
+                User: isUserExists,
                 Activities: isActivities,
                 TotalPoints: isPoints,
                 TokensWithDrawn: isTransactions,
