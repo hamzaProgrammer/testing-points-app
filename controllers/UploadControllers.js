@@ -8,7 +8,7 @@ const uploadFile = async (req, res) => {
         return res.json({ success: false, message: "Please fill required fields" })
     } else {
         try {
-            console.log("===req.file.path =====", req.file.path)
+            //console.log("===req.file.path =====", req.file.path)
 
             let collectionName = getCollectionName(req.params.collectionName)
             if (!collectionName) {
